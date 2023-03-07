@@ -1410,6 +1410,7 @@ def setting_basic():
         'session_timeout',
         'site_name',
         'ttl_options',
+        'user_auth_history',
         'verify_ssl_connections',
         'verify_user_email',
         'warn_session_timeout',

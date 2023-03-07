@@ -35,6 +35,7 @@ class Setting(db.Model):
         'site_name': 'PowerDNS-Admin',
         'site_url': 'http://localhost:9191',
         'session_timeout': 10,
+        'user_auth_history': True,
         'warn_session_timeout': True,
         'pdns_api_url': '',
         'pdns_api_key': '',

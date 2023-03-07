@@ -551,14 +551,15 @@ def signin_history(username, authenticator, success):
                 username, authenticator, request_ip))
 
     # Write history
-    History(msg='User {} authentication {}'.format(username, str_success),
-            detail = json.dumps({
-                    'username': username,
-                    'authenticator': authenticator,
-                    'ip_address': request_ip,
-                    'success': 1 if success else 0
-                }),
-            created_by='System').add()
+    if Setting().get('user_auth_history'):
+        History(msg='User {} authentication {}'.format(username, str_success),
+                detail = json.dumps({
+                        'username': username,
+                        'authenticator': authenticator,
+                        'ip_address': request_ip,
+                        'success': 1 if success else 0
+                    }),
+                created_by='System').add()
 
 # Get a list of Azure security groups the user is a member of
 def get_azure_groups(uri):
