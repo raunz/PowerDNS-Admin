@@ -45,7 +45,7 @@ $ docker run -d \
     -e SECRET_KEY='a-very-secret-key' \
     -v pda-data:/data \
     -p 9191:80 \
-    powerdnsadmin/pda-legacy:v0.3.0
+    powerdnsadmin/pda-legacy:latest
 ```
 
 This creates a volume named `pda-data` to persist the default SQLite database with app configuration.
@@ -70,9 +70,13 @@ You can then access PowerDNS-Admin by pointing your browser to http://localhost:
 
 ## Screenshots
 
-![dashboard](https://user-images.githubusercontent.com/6447444/44068603-0d2d81f6-9fa5-11e8-83af-14e2ad79e370.png)
+![dashboard](docs/screenshots/dashboard.png)
 
-## LICENSE
+## Contributing
+
+Please see our [contributing guidelines](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/dev/docs/CONTRIBUTING.md).
+
+## License
 
 This project is released under the MIT license. For additional
 information, [see here](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/LICENSE)

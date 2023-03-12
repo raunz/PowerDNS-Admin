@@ -21,144 +21,9 @@
     </div>
 {% endblock %}
 
-{% import 'applied_change_macro.html' as applied_change_macro %}
-
 {% block content %}
     <section class="content">
         <div class="container-fluid">
-
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card card-outline card-secondary shadow">
-                        <div class="card-header">
-                            <h3 class="card-title">Statistics</h3>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-6 col-sm-3">
-                                    <div class="small-box bg-info">
-                                        <div class="inner">
-                                            <h3>{{ domain_count }}</h3>
-                                            <p>{% if domain_count > 1 %}Domains{% else %}Domain{% endif %}</p>
-                                        </div>
-                                        <div class="icon">
-                                            <i class="fa-solid fa-book"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-3">
-                                    <a href="{{ url_for('admin.history') }}">
-                                        <div class="small-box bg-green">
-                                            <div class="inner">
-                                                <h3>{{ history_number }}</h3>
-                                                <p>{% if history_number > 1 %}Histories{% else %}
-                                                    History{% endif %}</p>
-                                            </div>
-                                            <div class="icon">
-                                                <i class="fa-solid fa-calendar"></i>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                                {% if current_user.role.name in ['Administrator', 'Operator'] %}
-                                    <div class="col-6 col-sm-3">
-                                        <a href="{{ url_for('admin.manage_user') }}">
-                                            <div class="small-box bg-green">
-                                                <div class="inner">
-                                                    <h3>{{ user_num }}</h3>
-                                                    <p>{% if user_num > 1 %}Users{% else %}User{% endif %}</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa-solid fa-users"></i>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div class="col-6 col-sm-3">
-                                        <a href="{{ url_for('admin.server_statistics') }}">
-                                            <div class="small-box bg-green">
-                                                <div class="inner">
-                                                    <h3><span
-                                                            style="font-size: 18px">{{ uptime|display_second_to_time }}</span>
-                                                    </h3>
-                                                    <p>Uptime</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa-solid fa-clock"></i>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <!-- /.row -->
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
-                    <!-- /.card -->
-                </div>
-                <!-- /.col -->
-            </div>
-            <!-- /.row -->
-
-            {% if current_user.role.name in ['Administrator', 'Operator'] or SETTING.get('allow_user_view_history') %}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card card-outline card-secondary shadow">
-                            <div class="card-header">
-                                <h3 class="card-title">Recent Activity</h3>
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body table-responsive records p-0">
-                                <table class="table table-striped table-hover table-sm records">
-                                    <thead>
-                                    <tr>
-                                        <th>Log Message</th>
-                                        <th>Timestamp</th>
-                                        <th>User</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for history in histories %}
-                                        <tr class="odd">
-                                            <td>{{ history.history.msg }}</td>
-                                            <td>{{ history.history.created_on | format_datetime_local }}</td>
-                                            <td>{{ history.history.created_by }}</td>
-                                            <td>
-                                                <div id="history-info-div-{{ loop.index0 }}" style="display: none;">
-                                                    {{ history.detailed_msg | safe }}
-                                                    {% if history.change_set %}
-                                                        <div class="content">
-                                                            <div id="change_index_definition"></div>
-                                                            {% call applied_change_macro.applied_change_template(history.change_set) %}
-                                                            {% endcall %}
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-primary history-info-button"
-                                                        title="View Additional Information"
-                                                        {% if history.detailed_msg == "" and history.change_set is none %}
-                                                        style="visibility: hidden;"
-                                                        {% endif %} value="{{ loop.index0 }}">
-                                                    <i class="fa-solid fa-info-circle"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- /.card-body -->
-                        </div>
-                        <!-- /.card -->
-                    </div>
-                    <!-- /.col -->
-                </div>
-                <!-- /.row -->
-            {% endif %}
-
             <div class="row">
                 <div class="col-12">
                     <div class="card card-outline card-primary shadow">
@@ -176,17 +41,11 @@
                                 <div class="nav-tabs-custom">
                                     <ul class="nav nav-tabs card-header-tabs" id="custom-content-below-tab"
                                         role="tablist">
-                                        <li class="nav-item">
-                                            <a class="nav-link active" href="#tab_{{ custom_boxes.order[0] }}"
-                                               data-toggle="pill" role="tab">
-                                                Zones <b>{{ custom_boxes.boxes[custom_boxes.order[0]][0] }}</b>
-                                            </a>
-                                        </li>
-                                        {% for boxId in custom_boxes.order[1:] %}
+                                        {% for tab_id in zone_tabs.order %}
                                             <li class="nav-item">
-                                                <a class="nav-link" href="#tab_{{ boxId }}" data-toggle="pill"
-                                                   role="tab">
-                                                    Zones <b>{{ custom_boxes.boxes[boxId][0] }}</b>
+                                                <a class="nav-link {% if loop.first %}active{% endif %}"
+                                                   href="#tab_{{ tab_id }}" data-toggle="pill" role="tab">
+                                                    Zones <b>{{ zone_tabs.tabs[tab_id].display_name }}</b>
                                                 </a>
                                             </li>
                                         {% endfor %}
@@ -197,10 +56,11 @@
                         <!-- /.card-header -->
                         <div class="card-body p-0">
                             <div class="tab-content">
-                                {% for boxId in custom_boxes.order %}
-                                    <div class="tab-pane show" id='tab_{{ boxId }}'>
+                                {% for tab_id in zone_tabs.order %}
+                                    <div id='tab_{{ tab_id }}'
+                                         class="tab-pane show {% if loop.first %}active{% endif %}">
                                         <div class="card-body table-responsive records p-0 pt-2">
-                                            <table id='tbl_domain_list_{{ boxId }}'
+                                            <table id='tbl_domain_list_{{ tab_id }}'
                                                    class="table table-striped table-hover table-sm records">
                                                 <thead>
                                                 <tr>
@@ -274,9 +134,8 @@
             });
         }
 
-        $('#tab_{{custom_boxes.order[0]}}').addClass("active");
-        {% for boxId in custom_boxes.order %}
-            setUpDomainList("#tbl_domain_list_{{boxId}}", "{{url_for('dashboard.domains_custom',boxId=boxId)}}");
+        {% for tab_id in zone_tabs.order %}
+            setUpDomainList("#tbl_domain_list_{{tab_id}}", "{{url_for('dashboard.domains_custom',tab_id=tab_id)}}");
         {% endfor %}
         //SYBPATCH END//
 
