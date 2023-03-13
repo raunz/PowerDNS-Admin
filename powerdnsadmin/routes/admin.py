@@ -1391,6 +1391,7 @@ def setting_basic():
         'default_domain_table_size',
         'default_record_table_size',
         'delete_sso_accounts',
+        'custom_history_header',
         'deny_domain_override',
         'dnssec_admins_only',
         'enable_api_rr_history',
@@ -1637,12 +1638,16 @@ def setting_authentication():
                               request.form.get('google_oauth_client_id'))
                 Setting().set('google_oauth_client_secret',
                               request.form.get('google_oauth_client_secret'))
+                Setting().set('google_oauth_metadata_url',
+                              request.form.get('google_oauth_metadata_url'))
                 Setting().set('google_token_url',
                               request.form.get('google_token_url'))
                 Setting().set('google_oauth_scope',
                               request.form.get('google_oauth_scope'))
                 Setting().set('google_authorize_url',
                               request.form.get('google_authorize_url'))
+                Setting().set('google_oauth_jwks_url',
+                              request.form.get('google_oauth_jwks_url'))
                 Setting().set('google_base_url',
                               request.form.get('google_base_url'))
                 result = {
@@ -1670,10 +1675,14 @@ def setting_authentication():
                               request.form.get('github_oauth_scope'))
                 Setting().set('github_oauth_api_url',
                               request.form.get('github_oauth_api_url'))
+                Setting().set('github_oauth_metadata_url',
+                              request.form.get('github_oauth_metadata_url'))
                 Setting().set('github_oauth_token_url',
                               request.form.get('github_oauth_token_url'))
                 Setting().set('github_oauth_authorize_url',
                               request.form.get('github_oauth_authorize_url'))
+                Setting().set('github_oauth_jwks_url',
+                              request.form.get('github_oauth_jwks_url'))
                 result = {
                     'status': True,
                     'msg':
@@ -1699,10 +1708,14 @@ def setting_authentication():
                               request.form.get('azure_oauth_scope'))
                 Setting().set('azure_oauth_api_url',
                               request.form.get('azure_oauth_api_url'))
+                Setting().set('azure_oauth_metadata_url',
+                              request.form.get('azure_oauth_metadata_url'))
                 Setting().set('azure_oauth_token_url',
                               request.form.get('azure_oauth_token_url'))
                 Setting().set('azure_oauth_authorize_url',
                               request.form.get('azure_oauth_authorize_url'))
+                Setting().set('azure_oauth_jwks_url',
+                              request.form.get('azure_oauth_jwks_url'))
                 Setting().set(
                     'azure_sg_enabled', True
                     if request.form.get('azure_sg_enabled') == 'ON' else False)
@@ -1750,12 +1763,14 @@ def setting_authentication():
                               request.form.get('oidc_oauth_scope'))
                 Setting().set('oidc_oauth_api_url',
                               request.form.get('oidc_oauth_api_url'))
+                Setting().set('oidc_oauth_metadata_url',
+                              request.form.get('oidc_oauth_metadata_url'))
                 Setting().set('oidc_oauth_token_url',
                               request.form.get('oidc_oauth_token_url'))
                 Setting().set('oidc_oauth_authorize_url',
                               request.form.get('oidc_oauth_authorize_url'))
-                Setting().set('oidc_oauth_metadata_url',
-                              request.form.get('oidc_oauth_metadata_url'))
+                Setting().set('oidc_oauth_jwks_url',
+                              request.form.get('oidc_oauth_jwks_url'))
                 Setting().set('oidc_oauth_logout_url',
                               request.form.get('oidc_oauth_logout_url'))
                 Setting().set('oidc_oauth_username',
