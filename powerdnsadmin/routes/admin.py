@@ -838,10 +838,10 @@ class DetailedHistory():
 
         detail_dict = json.loads(history.detail)
 
-        if 'domain_type' in detail_dict and 'account_id' in detail_dict:  # this is a domain creation
+        if 'domain_type' in detail_dict and 'account_id' in detail_dict:  # this is a zone creation
             self.detailed_msg = render_template_string("""
                     <table class="table table-bordered table-striped">
-                        <tr><td>Domain Type:</td><td>{{ domaintype }}</td></tr>
+                        <tr><td>Zone Type:</td><td>{{ domaintype }}</td></tr>
                         <tr><td>Account:</td><td>{{ account }}</td></tr>
                     </table>
                 """,
@@ -881,7 +881,7 @@ class DetailedHistory():
                                                        authenticator=detail_dict['authenticator'],
                                                        ip_address=detail_dict['ip_address'])
 
-        elif 'add_rrsets' in detail_dict:  # this is a domain record change
+        elif 'add_rrsets' in detail_dict:  # this is a zone record change
             # changes_set = []
             self.detailed_msg = ""
             # extract_changelogs_from_a_history_entry(changes_set, history, 0)
@@ -897,11 +897,11 @@ class DetailedHistory():
                                                        description=DetailedHistory.get_key_val(detail_dict,
                                                                                                "description"))
 
-        elif 'Change domain' in history.msg and 'access control' in history.msg:  # added or removed a user from a domain
+        elif any(msg in history.msg for msg in ['Change zone','Change domain']) and 'access control' in history.msg:  # added or removed a user from a zone
             users_with_access = DetailedHistory.get_key_val(detail_dict, "user_has_access")
             self.detailed_msg = render_template_string("""
                 <table class="table table-bordered table-striped">
-                    <tr><td>Users with access to this domain</td><td>{{ users_with_access }}</td></tr>
+                    <tr><td>Users with access to this zone</td><td>{{ users_with_access }}</td></tr>
                     <tr><td>Number of users:</td><td>{{ users_with_access | length }}</td><tr>
                 </table>
                 """,
@@ -913,7 +913,7 @@ class DetailedHistory():
                     <tr><td>Key: </td><td>{{ keyname }}</td></tr>
                     <tr><td>Role:</td><td>{{ rolename }}</td></tr>
                     <tr><td>Description:</td><td>{{ description }}</td></tr>
-                    <tr><td>Accessible domains with this API key:</td><td>{{ linked_domains }}</td></tr>
+                    <tr><td>Accessible zones with this API key:</td><td>{{ linked_domains }}</td></tr>
                     <tr><td>Accessible accounts with this API key:</td><td>{{ linked_accounts }}</td></tr>
                 </table>
                 """,
@@ -932,7 +932,7 @@ class DetailedHistory():
                     <tr><td>Key: </td><td>{{ keyname }}</td></tr>
                     <tr><td>Role:</td><td>{{ rolename }}</td></tr>
                     <tr><td>Description:</td><td>{{ description }}</td></tr>
-                    <tr><td>Accessible domains with this API key:</td><td>{{ linked_domains }}</td></tr>
+                    <tr><td>Accessible zones with this API key:</td><td>{{ linked_domains }}</td></tr>
                 </table>
                 """,
                                                        keyname=DetailedHistory.get_key_val(detail_dict, "key"),
@@ -942,11 +942,11 @@ class DetailedHistory():
                                                        linked_domains=DetailedHistory.get_key_val(detail_dict,
                                                                                                   "domains"))
 
-        elif 'Update type for domain' in history.msg:
+        elif any(msg in history.msg for msg in ['Update type for zone','Update type for domain']):
             self.detailed_msg = render_template_string("""
                 <table class="table table-bordered table-striped">
-                    <tr><td>Domain: </td><td>{{ domain }}</td></tr>
-                    <tr><td>Domain type:</td><td>{{ domain_type }}</td></tr>
+                    <tr><td>Zone: </td><td>{{ domain }}</td></tr>
+                    <tr><td>Zone type:</td><td>{{ domain_type }}</td></tr>
                     <tr><td>Masters:</td><td>{{ masters }}</td></tr>
                 </table>
                 """,
@@ -957,8 +957,8 @@ class DetailedHistory():
         elif 'reverse' in history.msg:
             self.detailed_msg = render_template_string("""
                 <table class="table table-bordered table-striped">
-                    <tr><td>Domain Type: </td><td>{{ domain_type }}</td></tr>
-                    <tr><td>Domain Master IPs:</td><td>{{ domain_master_ips }}</td></tr>
+                    <tr><td>Zone Type: </td><td>{{ domain_type }}</td></tr>
+                    <tr><td>Zone Master IPs:</td><td>{{ domain_master_ips }}</td></tr>
                 </table>
                 """,
                                                        domain_type=DetailedHistory.get_key_val(detail_dict,
@@ -977,7 +977,7 @@ class DetailedHistory():
                                                                                                   'status'),
                                                        history_msg=DetailedHistory.get_key_val(detail_dict, 'msg'))
 
-        elif 'Update domain' in history.msg and 'associate account' in history.msg:  # When an account gets associated or dissociate with domains
+        elif any(msg in history.msg for msg in ['Update zone','Update domain']) and 'associate account' in history.msg:  # When an account gets associated or dissociate with zones
             self.detailed_msg = render_template_string('''
                 <table class="table table-bordered table-striped">
                     <tr><td>Associate: </td><td>{{ history_assoc_account }}</td></tr>
@@ -1164,7 +1164,7 @@ def history_table():  # ajax call data
         else:
             # if the user isn't an administrator or operator,
             # allow_user_view_history must be enabled to get here,
-            # so include history for the domains for the user
+            # so include history for the zones for the user
             base_query = db.session.query(History) \
                 .join(Domain, History.domain_id == Domain.id) \
                 .outerjoin(DomainUser, Domain.id == DomainUser.domain_id) \
@@ -1231,11 +1231,14 @@ def history_table():  # ajax call data
                     .filter(
                     db.and_(
                         db.or_(
-                            History.msg.like("%domain " + domain_name) if domain_name != "*" else History.msg.like(
-                                "%domain%"),
+                            History.msg.like("%domain " + domain_name) if domain_name != "*" else History.msg.like("%domain%"),
+                            History.msg.like("%zone " + domain_name) if domain_name != "*" else History.msg.like("%zone%"),
                             History.msg.like(
                                 "%domain " + domain_name + " access control") if domain_name != "*" else History.msg.like(
-                                "%domain%access control")
+                                "%domain%access control"),
+                            History.msg.like(
+                                "%zone " + domain_name + " access control") if domain_name != "*" else History.msg.like(
+                                "%zone%access control")
                         ),
                         History.created_on <= max_date if max_date != None else True,
                         History.created_on >= min_date if min_date != None else True,
@@ -1247,8 +1250,12 @@ def history_table():  # ajax call data
                 histories = base_query \
                     .filter(
                     db.and_(
-                        History.msg.like("Apply record changes to domain " + domain_name) if domain_name != "*" \
-                            else History.msg.like("Apply record changes to domain%"),
+                        db.or_(
+                            History.msg.like("Apply record changes to domain " + domain_name) if domain_name != "*" \
+                                else History.msg.like("Apply record changes to domain%"),
+                            History.msg.like("Apply record changes to zone " + domain_name) if domain_name != "*" \
+                                else History.msg.like("Apply record changes to zone%"),
+                        ),
                         History.created_on <= max_date if max_date != None else True,
                         History.created_on >= min_date if min_date != None else True,
                         History.created_by == changed_by if changed_by != None else True
@@ -1551,7 +1558,23 @@ def setting_authentication():
             local_db_enabled = True if request.form.get(
                 'local_db_enabled') else False
             signup_enabled = True if request.form.get(
-                'signup_enabled', ) else False
+                'signup_enabled') else False
+
+            pwd_enforce_characters = True if request.form.get('pwd_enforce_characters') else False
+            pwd_min_len = safe_cast(request.form.get('pwd_min_len', Setting().defaults["pwd_min_len"]), int,
+                                    Setting().defaults["pwd_min_len"])
+            pwd_min_lowercase = safe_cast(request.form.get('pwd_min_lowercase', Setting().defaults["pwd_min_lowercase"]), int,
+                                          Setting().defaults["pwd_min_lowercase"])
+            pwd_min_uppercase = safe_cast(request.form.get('pwd_min_uppercase', Setting().defaults["pwd_min_uppercase"]), int,
+                                          Setting().defaults["pwd_min_uppercase"])
+            pwd_min_digits = safe_cast(request.form.get('pwd_min_digits', Setting().defaults["pwd_min_digits"]), int,
+                                       Setting().defaults["pwd_min_digits"])
+            pwd_min_special = safe_cast(request.form.get('pwd_min_special', Setting().defaults["pwd_min_special"]), int,
+                                        Setting().defaults["pwd_min_special"])
+
+            pwd_enforce_complexity = True if request.form.get('pwd_enforce_complexity') else False
+            pwd_min_complexity = safe_cast(request.form.get('pwd_min_complexity', Setting().defaults["pwd_min_complexity"]), int,
+                                           Setting().defaults["pwd_min_complexity"])
 
             if not has_an_auth_method(local_db_enabled=local_db_enabled):
                 result = {
@@ -1563,7 +1586,19 @@ def setting_authentication():
             else:
                 Setting().set('local_db_enabled', local_db_enabled)
                 Setting().set('signup_enabled', signup_enabled)
+
+                Setting().set('pwd_enforce_characters', pwd_enforce_characters)
+                Setting().set('pwd_min_len', pwd_min_len)
+                Setting().set('pwd_min_lowercase', pwd_min_lowercase)
+                Setting().set('pwd_min_uppercase', pwd_min_uppercase)
+                Setting().set('pwd_min_digits', pwd_min_digits)
+                Setting().set('pwd_min_special', pwd_min_special)
+
+                Setting().set('pwd_enforce_complexity', pwd_enforce_complexity)
+                Setting().set('pwd_min_complexity', pwd_min_complexity)
+
                 result = {'status': True, 'msg': 'Saved successfully'}
+
         elif conf_type == 'ldap':
             ldap_enabled = True if request.form.get('ldap_enabled') else False
 
@@ -1831,7 +1866,7 @@ def create_template():
             t = DomainTemplate(name=name, description=description)
             result = t.create()
             if result['status'] == 'ok':
-                history = History(msg='Add domain template {0}'.format(name),
+                history = History(msg='Add zone template {0}'.format(name),
                                   detail=json.dumps({
                                       'name': name,
                                       'description': description
@@ -1844,7 +1879,7 @@ def create_template():
                 return redirect(url_for('admin.create_template'))
         except Exception as e:
             current_app.logger.error(
-                'Cannot create domain template. Error: {0}'.format(e))
+                'Cannot create zone template. Error: {0}'.format(e))
             current_app.logger.debug(traceback.format_exc())
             abort(500)
 
@@ -1878,7 +1913,7 @@ def create_template_from_zone():
         t = DomainTemplate(name=name, description=description)
         result = t.create()
         if result['status'] == 'ok':
-            history = History(msg='Add domain template {0}'.format(name),
+            history = History(msg='Add zone template {0}'.format(name),
                               detail=json.dumps({
                                   'name': name,
                                   'description': description
@@ -1886,7 +1921,7 @@ def create_template_from_zone():
                               created_by=current_user.username)
             history.add()
 
-            # After creating the domain in Domain Template in the,
+            # After creating the zone in Zone Template in the,
             # local DB. We add records into it Record Template.
             records = []
             domain = Domain.query.filter(Domain.name == domain_name).first()
@@ -1915,7 +1950,7 @@ def create_template_from_zone():
                         'msg': result['msg']
                     }), 200)
             else:
-                # Revert the domain template (remove it)
+                # Revert the zone template (remove it)
                 # ff we cannot add records.
                 t.delete_template()
                 return make_response(
@@ -1972,7 +2007,7 @@ def edit_template(template):
                                    ttl_options=ttl_options)
     except Exception as e:
         current_app.logger.error(
-            'Cannot open domain template page. DETAIL: {0}'.format(e))
+            'Cannot open zone template page. DETAIL: {0}'.format(e))
         current_app.logger.debug(traceback.format_exc())
         abort(500)
     return redirect(url_for('admin.templates'))
@@ -2010,7 +2045,7 @@ def apply_records(template):
             jdata.pop('_csrf_token',
                       None)  # don't store csrf token in the history.
             history = History(
-                msg='Apply domain template record changes to domain template {0}'
+                msg='Apply zone template record changes to zone template {0}'
                 .format(template),
                 detail=json.dumps(jdata),
                 created_by=current_user.username)
@@ -2041,7 +2076,7 @@ def delete_template(template):
             result = t.delete_template()
             if result['status'] == 'ok':
                 history = History(
-                    msg='Deleted domain template {0}'.format(template),
+                    msg='Deleted zone template {0}'.format(template),
                     detail=json.dumps({'name': template}),
                     created_by=current_user.username)
                 history.add()
@@ -2145,3 +2180,10 @@ def validateURN(value):
         return False
 
     return True
+
+
+def safe_cast(val, to_type, default=None):
+    try:
+        return to_type(val)
+    except (ValueError, TypeError):
+        return default

@@ -72,11 +72,25 @@ You can then access PowerDNS-Admin by pointing your browser to http://localhost:
 
 ![dashboard](docs/screenshots/dashboard.png)
 
+## Security Policy
+
+Please see our [Security Policy](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/SECURITY.md).
+
 ## Contributing
 
-Please see our [contributing guidelines](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/dev/docs/CONTRIBUTING.md).
+Please see our [Contribution Guide](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/docs/CONTRIBUTING.md).
+
+## Code of Conduct
+
+Please see our [Code of Conduct Policy](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/docs/CODE_OF_CONDUCT.md).
 
 ## License
 
 This project is released under the MIT license. For additional
-information, [see here](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/LICENSE)
+information, [see the full license](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/LICENSE).
+
+## Donate
+
+Like my work?
+
+<a href="https://www.buymeacoffee.com/AzorianMatt" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
