@@ -72,8 +72,8 @@ def get_record_changes(del_rrset, add_rrset):
         """For the given record, return the state dict."""
         return {
             "disabled": record['disabled'],
-            "content":  record['content'],
-            "comment":  record.get('comment', ''),
+            "content": record['content'],
+            "comment": record.get('comment', ''),
         }
 
     add_records = get_records(add_rrset)
@@ -119,6 +119,9 @@ def extract_changelogs_from_history(histories, record_name=None, record_type=Non
     for entry in histories:
         changes = []
 
+        if entry.detail is None:
+            continue
+        
         if "add_rrsets" in entry.detail:
             details = json.loads(entry.detail)
             if not details['add_rrsets'] and not details['del_rrsets']:
@@ -128,14 +131,17 @@ def extract_changelogs_from_history(histories, record_name=None, record_type=Non
 
         # filter only the records with the specific record_name, record_type
         if record_name != None and record_type != None:
-            details['add_rrsets'] = list(filter_rr_list_by_name_and_type(details['add_rrsets'], record_name, record_type))
-            details['del_rrsets'] = list(filter_rr_list_by_name_and_type(details['del_rrsets'], record_name, record_type))
+            details['add_rrsets'] = list(
+                filter_rr_list_by_name_and_type(details['add_rrsets'], record_name, record_type))
+            details['del_rrsets'] = list(
+                filter_rr_list_by_name_and_type(details['del_rrsets'], record_name, record_type))
 
             if not details['add_rrsets'] and not details['del_rrsets']:
                 continue
 
         # same record name and type RR are being deleted and created in same entry.
-        del_add_changes = set([(r['name'], r['type']) for r in details['add_rrsets']]).intersection([(r['name'], r['type']) for r in details['del_rrsets']])
+        del_add_changes = set([(r['name'], r['type']) for r in details['add_rrsets']]).intersection(
+            [(r['name'], r['type']) for r in details['del_rrsets']])
         for del_add_change in del_add_changes:
             changes.append(HistoryRecordEntry(
                 entry,
@@ -155,8 +161,8 @@ def extract_changelogs_from_history(histories, record_name=None, record_type=Non
         # sort changes by the record name
         if changes:
             changes.sort(key=lambda change:
-                    change.del_rrset['name'] if change.del_rrset else change.add_rrset['name']
-                    )
+            change.del_rrset['name'] if change.del_rrset else change.add_rrset['name']
+                         )
             out_changes.extend(changes)
     return out_changes
 
@@ -882,7 +888,8 @@ class DetailedHistory():
                                                        description=DetailedHistory.get_key_val(detail_dict,
                                                                                                "description"))
 
-        elif any(msg in history.msg for msg in ['Change zone','Change domain']) and 'access control' in history.msg:  # added or removed a user from a zone
+        elif any(msg in history.msg for msg in ['Change zone',
+                                                'Change domain']) and 'access control' in history.msg:  # added or removed a user from a zone
             users_with_access = DetailedHistory.get_key_val(detail_dict, "user_has_access")
             self.detailed_msg = render_template_string("""
                 <table class="table table-bordered table-striped">
@@ -927,7 +934,7 @@ class DetailedHistory():
                                                        linked_domains=DetailedHistory.get_key_val(detail_dict,
                                                                                                   "domains"))
 
-        elif any(msg in history.msg for msg in ['Update type for zone','Update type for domain']):
+        elif any(msg in history.msg for msg in ['Update type for zone', 'Update type for domain']):
             self.detailed_msg = render_template_string("""
                 <table class="table table-bordered table-striped">
                     <tr><td>Zone: </td><td>{{ domain }}</td></tr>
@@ -962,7 +969,8 @@ class DetailedHistory():
                                                                                                   'status'),
                                                        history_msg=DetailedHistory.get_key_val(detail_dict, 'msg'))
 
-        elif any(msg in history.msg for msg in ['Update zone','Update domain']) and 'associate account' in history.msg:  # When an account gets associated or dissociate with zones
+        elif any(msg in history.msg for msg in ['Update zone',
+                                                'Update domain']) and 'associate account' in history.msg:  # When an account gets associated or dissociate with zones
             self.detailed_msg = render_template_string('''
                 <table class="table table-bordered table-striped">
                     <tr><td>Associate: </td><td>{{ history_assoc_account }}</td></tr>
@@ -1147,10 +1155,10 @@ def history_table():  # ajax call data
                 .outerjoin(Account, Domain.account_id == Account.id) \
                 .outerjoin(AccountUser, Account.id == AccountUser.account_id) \
                 .filter(db.or_(
-                    DomainUser.user_id == current_user.id,
-                    AccountUser.user_id == current_user.id
-                )) \
-            .subquery()
+                DomainUser.user_id == current_user.id,
+                AccountUser.user_id == current_user.id
+            )) \
+                .subquery()
             base_query = base_query.filter(History.domain_id.in_(allowed_domain_id_subquery))
 
         domain_name = request.args.get('domain_name_filter') if request.args.get('domain_name_filter') != None \
@@ -1208,8 +1216,10 @@ def history_table():  # ajax call data
                     .filter(
                     db.and_(
                         db.or_(
-                            History.msg.like("%domain " + domain_name) if domain_name != "*" else History.msg.like("%domain%"),
-                            History.msg.like("%zone " + domain_name) if domain_name != "*" else History.msg.like("%zone%"),
+                            History.msg.like("%domain " + domain_name) if domain_name != "*" else History.msg.like(
+                                "%domain%"),
+                            History.msg.like("%zone " + domain_name) if domain_name != "*" else History.msg.like(
+                                "%zone%"),
                             History.msg.like(
                                 "%domain " + domain_name + " access control") if domain_name != "*" else History.msg.like(
                                 "%domain%access control"),
@@ -1267,7 +1277,8 @@ def history_table():  # ajax call data
                     )
                 ).order_by(History.created_on.desc()) \
                     .limit(lim).all()
-        elif user_name != None and current_user.role.name in ['Administrator', 'Operator']:  # only admins can see the user login-logouts
+        elif user_name != None and current_user.role.name in ['Administrator',
+                                                              'Operator']:  # only admins can see the user login-logouts
 
             histories = base_query.filter(
                 db.and_(
@@ -1292,7 +1303,8 @@ def history_table():  # ajax call data
                         temp.append(h)
                         break
             histories = temp
-        elif (changed_by != None or max_date != None) and current_user.role.name in ['Administrator', 'Operator']:  # select changed by and date filters only
+        elif (changed_by != None or max_date != None) and current_user.role.name in ['Administrator',
+                                                                                     'Operator']:  # select changed by and date filters only
             histories = base_query.filter(
                 db.and_(
                     History.created_on <= max_date if max_date != None else True,
@@ -1301,7 +1313,8 @@ def history_table():  # ajax call data
                 )
             ) \
                 .order_by(History.created_on.desc()).limit(lim).all()
-        elif (changed_by != None or max_date != None):  # special filtering for user because one user does not have access to log-ins logs
+        elif (
+                changed_by != None or max_date != None):  # special filtering for user because one user does not have access to log-ins logs
             histories = base_query.filter(
                 db.and_(
                     History.created_on <= max_date if max_date != None else True,
@@ -1393,7 +1406,7 @@ def setting_basic_edit(setting):
     new_value = jdata['value']
     result = Setting().set(setting, new_value)
 
-    if (result):
+    if result:
         return make_response(
             jsonify({
                 'status': 'ok',
@@ -1457,329 +1470,54 @@ def setting_pdns():
 @login_required
 @operator_role_required
 def setting_records():
+    from powerdnsadmin.lib.settings import AppSettings
     if request.method == 'GET':
-        _fr = Setting().get('forward_records_allow_edit')
-        _rr = Setting().get('reverse_records_allow_edit')
-        f_records = literal_eval(_fr) if isinstance(_fr, str) else _fr
-        r_records = literal_eval(_rr) if isinstance(_rr, str) else _rr
-
+        forward_records = Setting().get('forward_records_allow_edit')
+        reverse_records = Setting().get('reverse_records_allow_edit')
         return render_template('admin_setting_records.html',
-                               f_records=f_records,
-                               r_records=r_records)
+                               f_records=forward_records,
+                               r_records=reverse_records)
     elif request.method == 'POST':
         fr = {}
         rr = {}
-        records = Setting().defaults['forward_records_allow_edit']
+        records = AppSettings.defaults['forward_records_allow_edit']
         for r in records:
             fr[r] = True if request.form.get('fr_{0}'.format(
                 r.lower())) else False
             rr[r] = True if request.form.get('rr_{0}'.format(
                 r.lower())) else False
 
-        Setting().set('forward_records_allow_edit', str(fr))
-        Setting().set('reverse_records_allow_edit', str(rr))
+        Setting().set('forward_records_allow_edit', json.dumps(fr))
+        Setting().set('reverse_records_allow_edit', json.dumps(rr))
+
         return redirect(url_for('admin.setting_records'))
-
-
-def has_an_auth_method(local_db_enabled=None,
-                       ldap_enabled=None,
-                       google_oauth_enabled=None,
-                       github_oauth_enabled=None,
-                       oidc_oauth_enabled=None,
-                       azure_oauth_enabled=None):
-    if local_db_enabled is None:
-        local_db_enabled = Setting().get('local_db_enabled')
-    if ldap_enabled is None:
-        ldap_enabled = Setting().get('ldap_enabled')
-    if google_oauth_enabled is None:
-        google_oauth_enabled = Setting().get('google_oauth_enabled')
-    if github_oauth_enabled is None:
-        github_oauth_enabled = Setting().get('github_oauth_enabled')
-    if oidc_oauth_enabled is None:
-        oidc_oauth_enabled = Setting().get('oidc_oauth_enabled')
-    if azure_oauth_enabled is None:
-        azure_oauth_enabled = Setting().get('azure_oauth_enabled')
-    return local_db_enabled or ldap_enabled or google_oauth_enabled or github_oauth_enabled or oidc_oauth_enabled or azure_oauth_enabled
 
 
 @admin_bp.route('/setting/authentication', methods=['GET', 'POST'])
 @login_required
 @admin_role_required
 def setting_authentication():
-    if request.method == 'GET':
-        return render_template('admin_setting_authentication.html')
-    elif request.method == 'POST':
-        conf_type = request.form.get('config_tab')
-        result = None
+    return render_template('admin_setting_authentication.html')
 
-        if conf_type == 'general':
-            local_db_enabled = True if request.form.get(
-                'local_db_enabled') else False
-            signup_enabled = True if request.form.get(
-                'signup_enabled') else False
 
-            pwd_enforce_characters = True if request.form.get('pwd_enforce_characters') else False
-            pwd_min_len = safe_cast(request.form.get('pwd_min_len', Setting().defaults["pwd_min_len"]), int,
-                                    Setting().defaults["pwd_min_len"])
-            pwd_min_lowercase = safe_cast(request.form.get('pwd_min_lowercase', Setting().defaults["pwd_min_lowercase"]), int,
-                                          Setting().defaults["pwd_min_lowercase"])
-            pwd_min_uppercase = safe_cast(request.form.get('pwd_min_uppercase', Setting().defaults["pwd_min_uppercase"]), int,
-                                          Setting().defaults["pwd_min_uppercase"])
-            pwd_min_digits = safe_cast(request.form.get('pwd_min_digits', Setting().defaults["pwd_min_digits"]), int,
-                                       Setting().defaults["pwd_min_digits"])
-            pwd_min_special = safe_cast(request.form.get('pwd_min_special', Setting().defaults["pwd_min_special"]), int,
-                                        Setting().defaults["pwd_min_special"])
+@admin_bp.route('/setting/authentication/api', methods=['POST'])
+@login_required
+@admin_role_required
+def setting_authentication_api():
+    from powerdnsadmin.lib.settings import AppSettings
+    result = {'status': 1, 'messages': [], 'data': {}}
 
-            pwd_enforce_complexity = True if request.form.get('pwd_enforce_complexity') else False
-            pwd_min_complexity = safe_cast(request.form.get('pwd_min_complexity', Setting().defaults["pwd_min_complexity"]), int,
-                                           Setting().defaults["pwd_min_complexity"])
+    if request.form.get('commit') == '1':
+        model = Setting()
+        data = json.loads(request.form.get('data'))
 
-            if not has_an_auth_method(local_db_enabled=local_db_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set('local_db_enabled', local_db_enabled)
-                Setting().set('signup_enabled', signup_enabled)
+        for key, value in data.items():
+            if key in AppSettings.groups['authentication']:
+                model.set(key, value)
 
-                Setting().set('pwd_enforce_characters', pwd_enforce_characters)
-                Setting().set('pwd_min_len', pwd_min_len)
-                Setting().set('pwd_min_lowercase', pwd_min_lowercase)
-                Setting().set('pwd_min_uppercase', pwd_min_uppercase)
-                Setting().set('pwd_min_digits', pwd_min_digits)
-                Setting().set('pwd_min_special', pwd_min_special)
+    result['data'] = Setting().get_group('authentication')
 
-                Setting().set('pwd_enforce_complexity', pwd_enforce_complexity)
-                Setting().set('pwd_min_complexity', pwd_min_complexity)
-
-                result = {'status': True, 'msg': 'Saved successfully'}
-
-        elif conf_type == 'ldap':
-            ldap_enabled = True if request.form.get('ldap_enabled') else False
-
-            if not has_an_auth_method(ldap_enabled=ldap_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set('ldap_enabled', ldap_enabled)
-                Setting().set('ldap_type', request.form.get('ldap_type'))
-                Setting().set('ldap_uri', request.form.get('ldap_uri'))
-                Setting().set('ldap_base_dn', request.form.get('ldap_base_dn'))
-                Setting().set('ldap_admin_username',
-                              request.form.get('ldap_admin_username'))
-                Setting().set('ldap_admin_password',
-                              request.form.get('ldap_admin_password'))
-                Setting().set('ldap_filter_basic',
-                              request.form.get('ldap_filter_basic'))
-                Setting().set('ldap_filter_group',
-                              request.form.get('ldap_filter_group'))
-                Setting().set('ldap_filter_username',
-                              request.form.get('ldap_filter_username'))
-                Setting().set('ldap_filter_groupname',
-                              request.form.get('ldap_filter_groupname'))
-                Setting().set(
-                    'ldap_sg_enabled', True
-                    if request.form.get('ldap_sg_enabled') == 'ON' else False)
-                Setting().set('ldap_admin_group',
-                              request.form.get('ldap_admin_group'))
-                Setting().set('ldap_operator_group',
-                              request.form.get('ldap_operator_group'))
-                Setting().set('ldap_user_group',
-                              request.form.get('ldap_user_group'))
-                Setting().set('ldap_domain', request.form.get('ldap_domain'))
-                Setting().set(
-                    'autoprovisioning', True
-                    if request.form.get('autoprovisioning') == 'ON' else False)
-                Setting().set('autoprovisioning_attribute',
-                              request.form.get('autoprovisioning_attribute'))
-
-                if request.form.get('autoprovisioning') == 'ON':
-                    if validateURN(request.form.get('urn_value')):
-                        Setting().set('urn_value',
-                                      request.form.get('urn_value'))
-                    else:
-                        return render_template('admin_setting_authentication.html',
-                                               error="Invalid urn")
-                else:
-                    Setting().set('urn_value',
-                                  request.form.get('urn_value'))
-
-                Setting().set('purge', True
-                if request.form.get('purge') == 'ON' else False)
-
-                result = {'status': True, 'msg': 'Saved successfully'}
-        elif conf_type == 'google':
-            google_oauth_enabled = True if request.form.get(
-                'google_oauth_enabled') else False
-            if not has_an_auth_method(google_oauth_enabled=google_oauth_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set('google_oauth_enabled', google_oauth_enabled)
-                Setting().set('google_oauth_client_id',
-                              request.form.get('google_oauth_client_id'))
-                Setting().set('google_oauth_client_secret',
-                              request.form.get('google_oauth_client_secret'))
-                Setting().set('google_oauth_metadata_url',
-                              request.form.get('google_oauth_metadata_url'))
-                Setting().set('google_token_url',
-                              request.form.get('google_token_url'))
-                Setting().set('google_oauth_scope',
-                              request.form.get('google_oauth_scope'))
-                Setting().set('google_authorize_url',
-                              request.form.get('google_authorize_url'))
-                Setting().set('google_base_url',
-                              request.form.get('google_base_url'))
-                result = {
-                    'status': True,
-                    'msg':
-                        'Saved successfully. Please reload PDA to take effect.'
-                }
-        elif conf_type == 'github':
-            github_oauth_enabled = True if request.form.get(
-                'github_oauth_enabled') else False
-            if not has_an_auth_method(github_oauth_enabled=github_oauth_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set('github_oauth_enabled', github_oauth_enabled)
-                Setting().set('github_oauth_key',
-                              request.form.get('github_oauth_key'))
-                Setting().set('github_oauth_secret',
-                              request.form.get('github_oauth_secret'))
-                Setting().set('github_oauth_scope',
-                              request.form.get('github_oauth_scope'))
-                Setting().set('github_oauth_api_url',
-                              request.form.get('github_oauth_api_url'))
-                Setting().set('github_oauth_metadata_url',
-                              request.form.get('github_oauth_metadata_url'))
-                Setting().set('github_oauth_token_url',
-                              request.form.get('github_oauth_token_url'))
-                Setting().set('github_oauth_authorize_url',
-                              request.form.get('github_oauth_authorize_url'))
-                result = {
-                    'status': True,
-                    'msg':
-                        'Saved successfully. Please reload PDA to take effect.'
-                }
-        elif conf_type == 'azure':
-            azure_oauth_enabled = True if request.form.get(
-                'azure_oauth_enabled') else False
-            if not has_an_auth_method(azure_oauth_enabled=azure_oauth_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set('azure_oauth_enabled', azure_oauth_enabled)
-                Setting().set('azure_oauth_key',
-                              request.form.get('azure_oauth_key'))
-                Setting().set('azure_oauth_secret',
-                              request.form.get('azure_oauth_secret'))
-                Setting().set('azure_oauth_scope',
-                              request.form.get('azure_oauth_scope'))
-                Setting().set('azure_oauth_api_url',
-                              request.form.get('azure_oauth_api_url'))
-                Setting().set('azure_oauth_metadata_url',
-                              request.form.get('azure_oauth_metadata_url'))
-                Setting().set('azure_oauth_token_url',
-                              request.form.get('azure_oauth_token_url'))
-                Setting().set('azure_oauth_authorize_url',
-                              request.form.get('azure_oauth_authorize_url'))
-                Setting().set(
-                    'azure_sg_enabled', True
-                    if request.form.get('azure_sg_enabled') == 'ON' else False)
-                Setting().set('azure_admin_group',
-                              request.form.get('azure_admin_group'))
-                Setting().set('azure_operator_group',
-                              request.form.get('azure_operator_group'))
-                Setting().set('azure_user_group',
-                              request.form.get('azure_user_group'))
-                Setting().set(
-                    'azure_group_accounts_enabled', True
-                    if request.form.get('azure_group_accounts_enabled') == 'ON' else False)
-                Setting().set('azure_group_accounts_name',
-                              request.form.get('azure_group_accounts_name'))
-                Setting().set('azure_group_accounts_name_re',
-                              request.form.get('azure_group_accounts_name_re'))
-                Setting().set('azure_group_accounts_description',
-                              request.form.get('azure_group_accounts_description'))
-                Setting().set('azure_group_accounts_description_re',
-                              request.form.get('azure_group_accounts_description_re'))
-                result = {
-                    'status': True,
-                    'msg':
-                        'Saved successfully. Please reload PDA to take effect.'
-                }
-        elif conf_type == 'oidc':
-            oidc_oauth_enabled = True if request.form.get(
-                'oidc_oauth_enabled') else False
-            if not has_an_auth_method(oidc_oauth_enabled=oidc_oauth_enabled):
-                result = {
-                    'status':
-                        False,
-                    'msg':
-                        'Must have at least one authentication method enabled.'
-                }
-            else:
-                Setting().set(
-                    'oidc_oauth_enabled',
-                    True if request.form.get('oidc_oauth_enabled') else False)
-                Setting().set('oidc_oauth_key',
-                              request.form.get('oidc_oauth_key'))
-                Setting().set('oidc_oauth_secret',
-                              request.form.get('oidc_oauth_secret'))
-                Setting().set('oidc_oauth_scope',
-                              request.form.get('oidc_oauth_scope'))
-                Setting().set('oidc_oauth_api_url',
-                              request.form.get('oidc_oauth_api_url'))
-                Setting().set('oidc_oauth_metadata_url',
-                              request.form.get('oidc_oauth_metadata_url'))
-                Setting().set('oidc_oauth_token_url',
-                              request.form.get('oidc_oauth_token_url'))
-                Setting().set('oidc_oauth_authorize_url',
-                              request.form.get('oidc_oauth_authorize_url'))
-                Setting().set('oidc_oauth_logout_url',
-                              request.form.get('oidc_oauth_logout_url'))
-                Setting().set('oidc_oauth_username',
-                              request.form.get('oidc_oauth_username'))
-                Setting().set('oidc_oauth_firstname',
-                              request.form.get('oidc_oauth_firstname'))
-                Setting().set('oidc_oauth_last_name',
-                              request.form.get('oidc_oauth_last_name'))
-                Setting().set('oidc_oauth_email',
-                              request.form.get('oidc_oauth_email'))
-                Setting().set('oidc_oauth_account_name_property',
-                              request.form.get('oidc_oauth_account_name_property'))
-                Setting().set('oidc_oauth_account_description_property',
-                              request.form.get('oidc_oauth_account_description_property'))
-                result = {
-                    'status': True,
-                    'msg':
-                        'Saved successfully. Please reload PDA to take effect.'
-                }
-        else:
-            return abort(400)
-
-        return render_template('admin_setting_authentication.html',
-                               result=result)
+    return result
 
 
 @admin_bp.route('/templates', methods=['GET', 'POST'])
@@ -2056,16 +1794,16 @@ def global_search():
             results = server.global_search(object_type='all', query=query)
 
             # Filter results to domains to which the user has access permission
-            if current_user.role.name not in [ 'Administrator', 'Operator' ]:
+            if current_user.role.name not in ['Administrator', 'Operator']:
                 allowed_domains = db.session.query(Domain) \
                     .outerjoin(DomainUser, Domain.id == DomainUser.domain_id) \
                     .outerjoin(Account, Domain.account_id == Account.id) \
                     .outerjoin(AccountUser, Account.id == AccountUser.account_id) \
                     .filter(
-                        db.or_(
-                            DomainUser.user_id == current_user.id,
-                            AccountUser.user_id == current_user.id
-                        )) \
+                    db.or_(
+                        DomainUser.user_id == current_user.id,
+                        AccountUser.user_id == current_user.id
+                    )) \
                     .with_entities(Domain.name) \
                     .all()
                 allowed_domains = [value for value, in allowed_domains]

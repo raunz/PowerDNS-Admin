@@ -66,15 +66,15 @@ def domain(domain_name):
     current_app.logger.debug("Fetched rrsets: \n{}".format(pretty_json(rrsets)))
 
     # API server might be down, misconfigured
-    if not rrsets and domain.type != 'slave':
+    if not rrsets and str(domain.type).lower() != 'slave':
         abort(500)
 
     quick_edit = Setting().get('record_quick_edit')
     records_allow_to_edit = Setting().get_records_allow_to_edit()
     forward_records_allow_to_edit = Setting(
-    ).get_forward_records_allow_to_edit()
+    ).get_supported_record_types(Setting().ZONE_TYPE_FORWARD)
     reverse_records_allow_to_edit = Setting(
-    ).get_reverse_records_allow_to_edit()
+    ).get_supported_record_types(Setting().ZONE_TYPE_REVERSE)
     ttl_options = Setting().get_ttl_options()
     records = []
 
@@ -494,13 +494,17 @@ def setting(domain_name):
         d = Domain(name=domain_name)
         domain_user_ids = d.get_user()
         account = d.get_account()
+        domain_info = d.get_domain_info(domain_name)
 
         return render_template('domain_setting.html',
                                domain=domain,
                                users=users,
                                domain_user_ids=domain_user_ids,
                                accounts=accounts,
-                               domain_account=account)
+                               domain_account=account,
+                               zone_type=domain_info["kind"].lower(),
+                               masters=','.join(domain_info["masters"]),
+                               soa_edit_api=domain_info["soa_edit_api"].upper())
 
     if request.method == 'POST':
         # username in right column

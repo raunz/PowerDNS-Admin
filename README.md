@@ -24,6 +24,8 @@ A PowerDNS web interface with advanced features.
 - Provides an API for zone and record management among other features
 - Provides full IDN/Punycode support
 
+## [Project Update - PLEASE READ!!!](https://github.com/PowerDNS-Admin/PowerDNS-Admin/discussions/1708)
+
 ## Running PowerDNS-Admin
 
 There are several ways to run PowerDNS-Admin. The quickest way is to use Docker.
@@ -55,10 +57,10 @@ This creates a volume named `pda-data` to persist the default SQLite database wi
 1. Update the configuration   
    Edit the `docker-compose.yml` file to update the database connection string in `SQLALCHEMY_DATABASE_URI`.
    Other environment variables are mentioned in
-   the [legal_envvars](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/configs/docker_config.py#L5-L46).
-   To use the Docker secrets feature it is possible to append `_FILE` to the environment variables and point to a file
-   with the values stored in it.   
-   Make sure to set the environment variable `SECRET_KEY` to a long random
+   the [AppSettings.defaults](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/powerdnsadmin/lib/settings.py) dictionary.
+   To use a Docker-style secrets convention, one may append `_FILE` to the environment variables with a path to a file
+   containing the intended value of the variable (e.g. `SQLALCHEMY_DATABASE_URI_FILE=/run/secrets/db_uri`).   
+   Make sure to set the environment variable `SECRET_KEY` to a long, random
    string (https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY)
 
 2. Start docker container
@@ -94,11 +96,3 @@ Please see our [Code of Conduct Policy](https://github.com/PowerDNS-Admin/PowerD
 
 This project is released under the MIT license. For additional
 information, [see the full license](https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/master/LICENSE).
-
-## [Donate](https://www.buymeacoffee.com/AzorianMatt)
-
-Like my work?
-
-<a href="https://www.buymeacoffee.com/AzorianMatt" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-
-**Want to sponsor me?** Please visit my organization's [sponsorship page](https://github.com/sponsors/AzorianSolutions).
