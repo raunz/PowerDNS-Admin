@@ -14,7 +14,6 @@ class Setting(db.Model):
 
     ZONE_TYPE_FORWARD = 'forward'
     ZONE_TYPE_REVERSE = 'reverse'
-        'user_auth_history': True,
 
     def __init__(self, id=None, name=None, value=None):
         self.id = id
