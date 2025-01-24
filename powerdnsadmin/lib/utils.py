@@ -5,6 +5,7 @@ import requests
 import ipaddress
 import idna
 
+from flask import current_app
 from collections.abc import Iterable
 from distutils.version import StrictVersion
 from urllib.parse import urlparse
@@ -229,7 +230,7 @@ def ensure_list(l):
 
 def pretty_domain_name(domain_name):
     # Add a debugging statement to print out the domain name
-    print("Received zone name:", domain_name)
+    current_app.logger.debug('Received zone name:: {0}'.format(domain_name))
 
     # Check if the domain name is encoded using Punycode
     if domain_name.endswith('.xn--'):
