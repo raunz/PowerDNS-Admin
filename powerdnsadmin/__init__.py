@@ -5,13 +5,15 @@ from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_session import Session
 from .lib import utils
-
+from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
 
 def create_app(config=None):
     from powerdnsadmin.lib.settings import AppSettings
     from . import models, routes, services
     from .assets import assets
     app = Flask(__name__)
+
+    metrics = GunicornPrometheusMetrics(app, excluded_paths=["/static/*"])
 
     # Read log level from environment variable
     log_level_name = os.environ.get('PDNS_ADMIN_LOG_LEVEL', 'WARNING')
